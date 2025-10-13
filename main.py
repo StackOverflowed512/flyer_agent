@@ -1,5 +1,5 @@
 import os
-from fastapi import FastAPI, Request, HTTPException
+from fastapi import FastAPI, Request, HTTPException, BackgroundTasks
 from fastapi.responses import HTMLResponse
 from fastapi.templating import Jinja2Templates
 from fastapi.staticfiles import StaticFiles
@@ -50,7 +50,7 @@ async def read_root(request: Request):
     return templates.TemplateResponse("index.html", {"request": request})
 
 @app.post("/chat")
-async def chat(chat_request: ChatRequest):
+async def chat(chat_request: ChatRequest, background_tasks: BackgroundTasks):
     """Handles incoming chat messages from the user."""
     try:
         bot_response = get_mistral_response(chat_request.message, chat_request.history)
@@ -75,14 +75,11 @@ async def chat(chat_request: ChatRequest):
             if customer_data and customer_data.get('email') and product_name:
                 logger.info(f"Attempting to send flyer to {customer_data['email']} for {product_name}")
                 try:
-                    success = send_flyer_via_email(customer_data['email'], product_name)
-                    if success:
-                        bot_response = f"Great! I've sent the {product_name} flyer to your email address ({customer_data['email']}). Please check your inbox. Is there anything else I can help you with?"
-                    else:
-                        bot_response = "I apologize, but there was an issue sending the flyer. Please try again or provide a different email address."
-                        logger.error(f"Failed to send flyer to {customer_data['email']}")
+                    # Use background task for sending email
+                    background_tasks.add_task(send_flyer_via_email, customer_data['email'], product_name)
+                    bot_response = f"Great! I've sent the {product_name} flyer to your email address ({customer_data['email']}). Please check your inbox. Is there anything else I can help you with?"
                 except Exception as e:
-                    logger.error(f"Error sending flyer: {str(e)}")
+                    logger.error(f"Error scheduling flyer send: {str(e)}")
                     bot_response = "I apologize, but there was an error sending the flyer. Please try again later."
             elif not customer_data.get('email'):
                 bot_response = "I don't have your email address yet. Could you please provide it?"
