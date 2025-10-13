@@ -1,3 +1,4 @@
+import os
 from fastapi import FastAPI, Request, HTTPException
 from fastapi.responses import HTMLResponse
 from fastapi.templating import Jinja2Templates
@@ -6,6 +7,7 @@ from pydantic import BaseModel
 import json
 import re
 import logging
+from contextlib import asynccontextmanager
 
 # Configure logging
 logging.basicConfig(level=logging.INFO)
@@ -16,24 +18,30 @@ from mistral_client import get_mistral_response
 from flyer_sender import send_flyer_via_email, send_flyer_via_whatsapp
 
 # --- FastAPI App Initialization ---
-app = FastAPI()
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    init_db()
+    yield
+
+app = FastAPI(lifespan=lifespan)
 
 # Mount static files directory (for CSS, JS)
-app.mount("/static", StaticFiles(directory="static"), name="static")
+STATIC_DIR = os.path.join(os.path.dirname(__file__), "static")
+app.mount("/static", StaticFiles(directory=STATIC_DIR), name="static")
 
 # Initialize Jinja2 templates for rendering HTML
-templates = Jinja2Templates(directory="templates")
+TEMPLATES_DIR = os.path.join(os.path.dirname(__file__), "templates")
+templates = Jinja2Templates(directory=TEMPLATES_DIR)
+
+# --- Health Check Endpoint for Render ---
+@app.get("/health")
+async def health_check():
+    return {"status": "ok"}
 
 # --- Pydantic Models for Data Validation ---
 class ChatRequest(BaseModel):
     message: str
     history: list
-
-# --- Database Initialization ---
-# Ensures the database and table are created when the app starts.
-@app.on_event("startup")
-def on_startup():
-    init_db()
 
 # --- API Endpoints ---
 @app.get("/", response_class=HTMLResponse)

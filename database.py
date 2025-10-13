@@ -2,11 +2,12 @@ import sqlite3
 import os
 
 # --- Database Setup ---
-# Creates a 'data' directory if it doesn't exist to store the database file.
-if not os.path.exists('data'):
-    os.makedirs('data')
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+DATA_DIR = os.path.join(BASE_DIR, 'data')
+if not os.path.exists(DATA_DIR):
+    os.makedirs(DATA_DIR)
 
-DATABASE_URL = "data/customers.db"
+DATABASE_URL = os.path.join(DATA_DIR, "customers.db")
 
 def init_db():
     """Initializes the database and creates the 'customers' table if it doesn't exist."""

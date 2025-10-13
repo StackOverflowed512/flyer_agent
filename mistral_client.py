@@ -7,6 +7,8 @@ import random
 # --- Mistral AI API Configuration ---
 load_dotenv()
 api_key = os.getenv("MISTRAL_API_KEY")
+if api_key and api_key.startswith('"') and api_key.endswith('"'):
+    api_key = api_key[1:-1]
 
 if not api_key:
     raise ValueError("MISTRAL_API_KEY not found. Please set it in the .env file.")

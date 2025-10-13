@@ -14,6 +14,10 @@ logging.basicConfig(level=logging.INFO)
 load_dotenv()
 SENDER_EMAIL = os.getenv("SENDER_EMAIL")
 SENDER_PASSWORD = os.getenv("SENDER_PASSWORD")
+if SENDER_EMAIL and SENDER_EMAIL.startswith('"') and SENDER_EMAIL.endswith('"'):
+    SENDER_EMAIL = SENDER_EMAIL[1:-1]
+if SENDER_PASSWORD and SENDER_PASSWORD.startswith('"') and SENDER_PASSWORD.endswith('"'):
+    SENDER_PASSWORD = SENDER_PASSWORD[1:-1]
 
 def send_email(to_email: str, subject: str, body: str) -> bool:
     """Sends an email using Gmail SMTP."""
