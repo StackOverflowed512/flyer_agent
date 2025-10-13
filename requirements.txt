@@ -1,0 +1,10 @@
+fastapi
+uvicorn
+python-dotenv
+mistralai
+pydantic
+Jinja2
+aiofiles
+python-multipart
+mistral
+reportlab
