@@ -9,4 +9,3 @@ python-multipart
 mistral
 reportlab
 gunicorn
-sqlite3
